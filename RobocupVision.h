@@ -5,6 +5,8 @@
 #define Ball_POS 1
 #define Ball_NEG 0
 
+#define ADJUST_PARAMETER
+
 #include <opencv2/opencv.hpp>
 #include <fstream> 
 #include <iostream>
@@ -124,7 +126,7 @@ public:
 
     void GetSideLineBySldWin(cv::Mat binary_image);                         // get the rough sideline by using slide windows and least squares fit
 
-    std::vector<cv::Mat> GetPossibleBallRect(cv::Mat binary_image);         // get the possible ball's rects in the ball binary image with the help of sideline
+    std::vector<cv::Rect> GetPossibleBallRect(cv::Mat binary_image);         // get the possible ball's rects in the ball binary image with the help of sideline
 
     cv::Mat GetHogVec(cv::Rect roi);                                        // get the hog feature vector of roi in src_img 
 
@@ -135,7 +137,7 @@ public:
 
     void set_all_parameters(AllParameters ap);                              // when setting parameters in main.cpp
 
-    void WirteImg(cv::Mat src, string folder_name, int num);                // while running on darwin, save images
+    void WriteImg(cv::Mat src, string folder_name, int num);                // while running on darwin, save images
 
 public: // data menbers
     // father of everything
@@ -166,15 +168,16 @@ public: // data menbers
     double slide_win_thre_rate_;
 
     // for GetPossibleBallRect
-    // null
-    // it need little parameters
+    std::vector<cv::Rect> ball_possible_rects_;
+    cv::Rect ball_result_rect_;
+    int ball_rect_area_thre_;
 
     // for GetHogVec
     // null
     // all can be motified in the function body (*^_^*)
     // because it is seldom motified, which need re-train the whole svm classifier
 
-    // for WirteImg
+    // for WriteImg
     int start_file_num_;
     int max_file_num_;
 
