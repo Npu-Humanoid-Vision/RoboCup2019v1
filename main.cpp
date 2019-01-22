@@ -1,8 +1,9 @@
-#include <opencv2/opencv.hpp>
-#include <bits/stdc++.h>
+// 调参开关
+#define ADJUST_PARAMETER
 
-using namespace std;
-using namespace cv;
+
+#include "RobocupVision.h"
+
 
 int main(int argc, char const *argv[]) {
     
