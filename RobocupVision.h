@@ -114,6 +114,30 @@ public:
 };
 
 struct AllParameters {
+    // glass relate
+    int gls_h_min;
+    int gls_h_max;
+    int gls_h_direc;
+    int gls_l_min;
+    int gls_l_max;
+    int gls_s_min;
+    int gls_s_max;
+    int gls_ero_times;
+    int gls_dil_times;
+
+    // ball relate
+    int ball_l_min;
+    int ball_l_max;
+    int ball_ero_times;
+    int ball_dil_times;
+
+    int ball_rect_area_thre;
+
+    // slide window relate
+    int sld_win_num;
+    int sld_win_rows;
+    int sld_stride;
+    int sld_thre_rate;
 
 };
 
@@ -124,11 +148,11 @@ public:
 public:
     void imageProcess(cv::Mat input_image, ImgProcResult* output_result);   // external interface
     
-    cv::Mat Pretreat(cv::Mat raw_image);                                    // all pretreatment, image enhancement for the src_image and etc
+    void Pretreat(cv::Mat raw_image);                                       // all pretreatment, image enhancement for the src_image and etc
 
-    cv::Mat ProcessGlassColor(cv::Mat pretreated_image);                    // get the Glass binary image
+    cv::Mat ProcessGlassColor();                                            // get the Glass binary image
 
-    cv::Mat ProcessBallColor(cv::Mat pretreated_image);                     // get the ball binary image
+    cv::Mat ProcessBallColor();                                             // get the ball binary image
 
     std::vector<cv::Point2i> GetSideLineBySldWin(cv::Mat binary_image);     // get the rough sideline by using slide windows and least squares fit
 
@@ -159,19 +183,25 @@ public: // data menbers
     int glass_h_min_thre_;
     int glass_h_max_thre_;
     int glass_h_direction_forward_;
+    int glass_l_min_thre_;
+    int glass_l_max_thre_;
+    int glass_s_min_thre_;
+    int glass_s_max_thre_;
     int glass_erode_times_;
-    int glass_dilate_times_;
+    int glass_dilate_times_;    // the fear of dis-robust
     cv::Mat ball_binary_image;
     int ball_l_min_thre_;
     int ball_l_max_thre_;
+    int ball_erode_times_;
+    int ball_dilate_times_;
 
     // for GetSideLineBySldWin
-    int slide_window_num_;
-    int slide_window_cols_;
-    int slide_window_rows_;
+    int slide_window_num_;          // get from file
+    int slide_window_cols_;         // compute from frame's cols and nums
+    int slide_window_rows_;         // get from file
     std::vector<cv::Rect> slide_wins_;
-    int slide_stride_;
-    double slide_win_thre_rate_;
+    int slide_stride_;              // get from file
+    double slide_win_thre_rate_;    // get from file
     std::vector<cv::Point2i> sideline_border_discrete_points_;
 
     // for GetPossibleBallRect
@@ -190,7 +220,7 @@ public: // data menbers
 
     // for SVM classifier
     CvSVM ball_classifier_;
-    string svm_model_name_;     
+    string ball_model_name_;     
 
     // result & etc
     RobocupResult final_result_;
