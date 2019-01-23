@@ -179,7 +179,7 @@ public: // data menbers
     cv::Mat pretreated_image_;      // the after-enhancement src image 
     
     // for ProcessXColor
-    cv::Mat glass_binary_image;
+    cv::Mat glass_binary_image_;
     int glass_h_min_thre_;
     int glass_h_max_thre_;
     int glass_h_direction_forward_;
@@ -189,7 +189,7 @@ public: // data menbers
     int glass_s_max_thre_;
     int glass_erode_times_;
     int glass_dilate_times_;    // the fear of dis-robust
-    cv::Mat ball_binary_image;
+    cv::Mat ball_binary_image_;
     int ball_l_min_thre_;
     int ball_l_max_thre_;
     int ball_erode_times_;

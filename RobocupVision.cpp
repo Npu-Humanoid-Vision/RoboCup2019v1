@@ -10,14 +10,14 @@ void RobocupVision::imageProcess(cv::Mat input_image, ImgProcResult* output_resu
     Pretreat(input_image);
 
     // pix thre
-    glass_binary_image   = ProcessGlassColor();
-    ball_binary_image    = ProcessBallColor();
-
+    glass_binary_image_   = ProcessGlassColor();
+    ball_binary_image_    = ProcessBallColor();
     // fit the sideline discrete points by least quares method
     cv::Mat mat_a(slide_window_num_, 2, CV_64FC1);
     cv::Mat mat_x(2, 1, CV_64FC1);
     cv::Mat mat_b(slide_window_num_, 1, CV_64FC1);
-    sideline_border_discrete_points_ = GetSideLineBySldWin(glass_binary_image);
+    // SHOW_IMAGE(glass_binary_image_);
+    sideline_border_discrete_points_ = GetSideLineBySldWin(glass_binary_image_);
     for (int i = 0; i < slide_window_num_; i++) {
         mat_a.at<double>(i, 0) = sideline_border_discrete_points_[i].x;
         mat_a.at<double>(i, 1) = 1.;
@@ -26,7 +26,6 @@ void RobocupVision::imageProcess(cv::Mat input_image, ImgProcResult* output_resu
     }
     cv::Mat mat_a_t = mat_a.t();
     mat_x = (mat_a_t*mat_a).inv(DECOMP_LU)*mat_a_t*mat_b;
-
     // Judge the sideline result
     if (fabs(mat_x.at<double>(0, 0)) > -1) {    // it should be stable (￣▽￣)""
         final_result_.sideline_valid_   = true;
@@ -40,7 +39,7 @@ void RobocupVision::imageProcess(cv::Mat input_image, ImgProcResult* output_resu
     }
 
     // Get Ball Relate within the line area
-    ball_possible_rects_ = GetPossibleBallRect(ball_binary_image);
+    ball_possible_rects_ = GetPossibleBallRect(ball_binary_image_);
     // feed ball possible rect to ball classifier 
     std::vector<cv::Rect> ball_pos_lable_rects;
     for (std::vector<cv::Rect>::iterator iter = ball_possible_rects_.begin();
@@ -95,16 +94,21 @@ void RobocupVision::Pretreat(cv::Mat raw_image) {
 }
 
 cv::Mat RobocupVision::ProcessGlassColor() {
-    cv::Mat mask = src_hls_channels_[1] >= glass_l_min_thre_ & src_hls_channels_[1] <=glass_l_max_thre_
+    cv::Mat mask = src_hls_channels_[1] >= glass_l_min_thre_ & src_hls_channels_[1] <= glass_l_max_thre_
                     & src_hls_channels_[2] >= glass_s_min_thre_ & src_hls_channels_[2] <= glass_s_max_thre_;
+    // SHOW_IMAGE(mask);
     cv::Mat thre_result;
+    cout<< glass_h_min_thre_ << ' ' << glass_h_max_thre_ << endl;
     if (glass_h_direction_forward_) {
         thre_result = src_hls_channels_[0] <= glass_h_min_thre_ & src_hls_channels_[0] >= glass_h_max_thre_;
     }
     else {
         thre_result = src_hls_channels_[0] >= glass_h_max_thre_ | src_hls_channels_[0] <= glass_h_min_thre_;
     }
+    // cv::imshow("233", thre_result);
+    // cv::imshow("255", mask);
     thre_result = thre_result & mask;
+    // cv::imshow("244", thre_result);
     cv::erode(thre_result, thre_result, cv::Mat(5, 5, CV_8UC1), cv::Point(-1, -1), glass_erode_times_);
     cv::dilate(thre_result, thre_result, cv::Mat(5, 5, CV_8UC1), cv::Point(-1, -1), glass_dilate_times_);
 
@@ -128,7 +132,12 @@ std::vector<cv::Point2i> RobocupVision::GetSideLineBySldWin(cv::Mat binary_image
     // then return the points
     slide_window_cols_ = src_image_.cols/slide_window_num_;
     for (int i = 0; i < slide_window_num_; i++) {
-        slide_wins_.push_back(cv::Rect(i*slide_window_cols_, 0, slide_window_cols_, slide_window_rows_));
+        if (slide_wins_.size() < slide_window_num_) {
+            slide_wins_.push_back(cv::Rect(i*slide_window_cols_, 0, slide_window_cols_, slide_window_rows_));
+        }
+        else {
+            slide_wins_[i] = cv::Rect(i*slide_window_cols_, 0, slide_window_cols_, slide_window_rows_);
+        }
         
         bool win_valid = true;
         int pix_counter = 0;
@@ -136,6 +145,8 @@ std::vector<cv::Point2i> RobocupVision::GetSideLineBySldWin(cv::Mat binary_image
         while (win_valid) {
             pix_counter = 0;
             win_roi = binary_image(slide_wins_[i]);
+
+            // SHOW_IMAGE(win_roi);
             for (cv::Mat_<uchar>::iterator iter = win_roi.begin<uchar>(); iter != win_roi.end<uchar>(); iter++) {
                 if (*iter == 255) {
                     pix_counter++;
@@ -144,7 +155,7 @@ std::vector<cv::Point2i> RobocupVision::GetSideLineBySldWin(cv::Mat binary_image
             if (pix_counter*1.0/slide_wins_[i].area() > slide_win_thre_rate_) {
                 win_valid = false;
             }
-            if (slide_wins_[i].y+slide_stride_ <= src_image_.rows) {
+            if (slide_wins_[i].y+2*slide_stride_ < src_image_.rows) {
                 slide_wins_[i].y += slide_stride_;
             }
             else {
@@ -312,7 +323,7 @@ void RobocupVision::set_all_parameters(AllParameters ap) {
     glass_h_max_thre_           = ap.gls_h_max;
     glass_h_direction_forward_  = ap.gls_h_direc;
     glass_l_min_thre_           = ap.gls_l_min;
-    glass_l_max_thre_           = ap.gls_l_min;
+    glass_l_max_thre_           = ap.gls_l_max;
     glass_s_min_thre_           = ap.gls_s_min;
     glass_s_max_thre_           = ap.gls_s_max;
     glass_erode_times_          = ap.gls_ero_times;
@@ -328,7 +339,7 @@ void RobocupVision::set_all_parameters(AllParameters ap) {
     slide_window_num_           = ap.sld_win_num;
     slide_window_rows_          = ap.sld_win_rows;
     slide_stride_               = ap.sld_stride;
-    slide_win_thre_rate_        = ap.sld_thre_rate;
+    slide_win_thre_rate_        = 0.01*ap.sld_thre_rate;
 }
 
 void RobocupVision::WriteImg(cv::Mat src, string folder_name, int num) {
