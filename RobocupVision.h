@@ -59,15 +59,17 @@ public: // data menber
     // sideline detection relate
     bool sideline_valid_;
     double sideline_slope_;
-    cv::Point2d sideline_center_;
+    cv::Point2i sideline_center_;
+    cv::Point2i sideline_begin_;
+    cv::Point2i sideline_end_;
 
     // ball detection relate
     bool ball_valid_;
-    cv::Point2d ball_center_;
+    cv::Point2i ball_center_;
 
     // goal detection relate
     bool goal_valid_;
-    cv::Point2d goal_center_;
+    cv::Point2i goal_center_;
 
     // robo detection relate
 
@@ -86,6 +88,8 @@ public:
         sideline_valid_     = tmp->sideline_valid_;
         sideline_slope_     = tmp->sideline_slope_;
         sideline_center_    = tmp->sideline_center_; 
+        sideline_begin_     = tmp->sideline_begin_;
+        sideline_end_       = tmp->sideline_end_;
 
         ball_valid_         = tmp->ball_valid_;
         ball_center_        = tmp->ball_center_;
@@ -98,6 +102,8 @@ public:
         sideline_valid_     = res.sideline_valid_;
         sideline_slope_     = res.sideline_slope_;
         sideline_center_    = res.sideline_center_;
+        sideline_begin_     = res.sideline_begin_;
+        sideline_end_       = res.sideline_end_;
 
         ball_valid_         = res.ball_valid_;
         ball_center_        = res.ball_center_;
@@ -124,7 +130,7 @@ public:
 
     cv::Mat ProcessBallColor(cv::Mat pretreated_image);                     // get the ball binary image
 
-    void GetSideLineBySldWin(cv::Mat binary_image);                         // get the rough sideline by using slide windows and least squares fit
+    std::vector<cv::Point2i> GetSideLineBySldWin(cv::Mat binary_image);     // get the rough sideline by using slide windows and least squares fit
 
     std::vector<cv::Rect> GetPossibleBallRect(cv::Mat binary_image);         // get the possible ball's rects in the ball binary image with the help of sideline
 
@@ -166,6 +172,7 @@ public: // data menbers
     std::vector<cv::Rect> slide_wins_;
     int slide_stride_;
     double slide_win_thre_rate_;
+    std::vector<cv::Point2i> sideline_border_discrete_points_;
 
     // for GetPossibleBallRect
     std::vector<cv::Rect> ball_possible_rects_;
