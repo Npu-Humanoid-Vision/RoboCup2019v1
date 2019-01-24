@@ -139,6 +139,31 @@ struct AllParameters {
     int sld_stride;
     int sld_thre_rate;
 
+    // feel comfortable from Alex Beng !
+    template<typename XXX>
+    void operator=(XXX& robocup_vision) {
+        gls_h_min            =robocup_vision.glass_h_min_thre_;
+        gls_h_max            =robocup_vision.glass_h_max_thre_;
+        gls_h_direc          =robocup_vision.glass_h_direction_forward_;
+        gls_l_min            =robocup_vision.glass_l_min_thre_;
+        gls_l_max            =robocup_vision.glass_l_max_thre_;
+        gls_s_min            =robocup_vision.glass_s_min_thre_;
+        gls_s_max            =robocup_vision.glass_s_max_thre_;
+        gls_ero_times        =robocup_vision.glass_erode_times_;
+        gls_dil_times        =robocup_vision.glass_dilate_times_;
+
+        ball_l_min           =robocup_vision.ball_l_min_thre_;
+        ball_l_max           =robocup_vision.ball_l_max_thre_;
+        ball_ero_times       =robocup_vision.ball_erode_times_;
+        ball_dil_times       =robocup_vision.ball_dilate_times_;
+
+        ball_rect_area_thre  =robocup_vision.ball_rect_area_thre_;
+
+        sld_win_num          =robocup_vision.slide_window_num_;
+        sld_win_rows         =robocup_vision.slide_window_rows_;
+        sld_stride           =robocup_vision.slide_stride_;
+        sld_thre_rate        =robocup_vision.slide_win_thre_rate_*100;
+    }
 };
 
 class RobocupVision : public ImgProc {

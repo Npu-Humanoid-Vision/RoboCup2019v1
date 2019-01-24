@@ -96,19 +96,17 @@ void RobocupVision::Pretreat(cv::Mat raw_image) {
 cv::Mat RobocupVision::ProcessGlassColor() {
     cv::Mat mask = src_hls_channels_[1] >= glass_l_min_thre_ & src_hls_channels_[1] <= glass_l_max_thre_
                     & src_hls_channels_[2] >= glass_s_min_thre_ & src_hls_channels_[2] <= glass_s_max_thre_;
-    // SHOW_IMAGE(mask);
+
     cv::Mat thre_result;
-    cout<< glass_h_min_thre_ << ' ' << glass_h_max_thre_ << endl;
     if (glass_h_direction_forward_) {
         thre_result = src_hls_channels_[0] <= glass_h_min_thre_ & src_hls_channels_[0] >= glass_h_max_thre_;
     }
     else {
         thre_result = src_hls_channels_[0] >= glass_h_max_thre_ | src_hls_channels_[0] <= glass_h_min_thre_;
     }
-    // cv::imshow("233", thre_result);
-    // cv::imshow("255", mask);
+
     thre_result = thre_result & mask;
-    // cv::imshow("244", thre_result);
+
     cv::erode(thre_result, thre_result, cv::Mat(5, 5, CV_8UC1), cv::Point(-1, -1), glass_erode_times_);
     cv::dilate(thre_result, thre_result, cv::Mat(5, 5, CV_8UC1), cv::Point(-1, -1), glass_dilate_times_);
 
