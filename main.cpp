@@ -18,6 +18,7 @@ int main(int argc, char const *argv[]) {
         cerr<<"open camera fail"<<endl;
         return -1;
     }
+    // give ap init values
     ap = robocup_vision;
 
     cv::namedWindow("set_glass_params", CV_WINDOW_NORMAL);
@@ -58,22 +59,19 @@ int main(int argc, char const *argv[]) {
         robocup_vision.imageProcess(frame, &gabage);
         
 
-        cv::imshow("living", frame);
 
         cv::imshow("glass_binary_image", robocup_vision.glass_binary_image_);
         if (gabage.ball_valid_) {
-            cv::rectangle(frame, robocup_vision.ball_result_rect_, cv::Scalar(0, 255, 255));
+            cv::rectangle(frame, robocup_vision.ball_result_rect_, cv::Scalar(0, 255, 255));// ball marked in yellow
         }
-        cv::imshow("ball_result", frame);
         cv::imshow("ball_binary_image", robocup_vision.ball_binary_image_);
-        // for (std::vector<cv::Rect>::iterator iter = robocup_vision.slide_wins_.begin(); iter != robocup_vision.slide_wins_.end(); iter++) {
         for (int i  = 0; i < robocup_vision.slide_window_num_; i++) {
             cv::rectangle(frame, robocup_vision.slide_wins_[i], cv::Scalar(255, 255, 0));
         }
         if (gabage.sideline_valid_) {
             cv::line(frame, gabage.sideline_begin_, gabage.sideline_end_, cv::Scalar(0, 0, 255), 4);
         }
-        cv::imshow("frame_with_slide_wins", frame);
+        cv::imshow("vision_result", frame);
         char key = cv::waitKey(50);        
         if (key == 'q') {
             return 0;
@@ -82,9 +80,6 @@ int main(int argc, char const *argv[]) {
             robocup_vision.StoreParameters();
             return 0;
         }
-
-
     }
-    
     return 0;
 }

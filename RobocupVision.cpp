@@ -12,11 +12,11 @@ void RobocupVision::imageProcess(cv::Mat input_image, ImgProcResult* output_resu
     // pix thre
     glass_binary_image_   = ProcessGlassColor();
     ball_binary_image_    = ProcessBallColor();
+
     // fit the sideline discrete points by least quares method
     cv::Mat mat_a(slide_window_num_, 2, CV_64FC1);
     cv::Mat mat_x(2, 1, CV_64FC1);
     cv::Mat mat_b(slide_window_num_, 1, CV_64FC1);
-    // SHOW_IMAGE(glass_binary_image_);
     sideline_border_discrete_points_ = GetSideLineBySldWin(glass_binary_image_);
     for (int i = 0; i < slide_window_num_; i++) {
         mat_a.at<double>(i, 0) = sideline_border_discrete_points_[i].x;
@@ -26,6 +26,7 @@ void RobocupVision::imageProcess(cv::Mat input_image, ImgProcResult* output_resu
     }
     cv::Mat mat_a_t = mat_a.t();
     mat_x = (mat_a_t*mat_a).inv(DECOMP_LU)*mat_a_t*mat_b;
+
     // Judge the sideline result
     if (fabs(mat_x.at<double>(0, 0)) > -1) {    // it should be stable (￣▽￣)""
         final_result_.sideline_valid_   = true;
@@ -130,6 +131,7 @@ std::vector<cv::Point2i> RobocupVision::GetSideLineBySldWin(cv::Mat binary_image
     // then return the points
     slide_window_cols_ = src_image_.cols/slide_window_num_;
     for (int i = 0; i < slide_window_num_; i++) {
+        // in case that stack overflow
         if (slide_wins_.size() < slide_window_num_) {
             slide_wins_.push_back(cv::Rect(i*slide_window_cols_, 0, slide_window_cols_, slide_window_rows_));
         }
@@ -140,7 +142,7 @@ std::vector<cv::Point2i> RobocupVision::GetSideLineBySldWin(cv::Mat binary_image
         bool win_valid = true;
         int pix_counter = 0;
         cv::Mat win_roi;
-        while (win_valid) {
+        do {
             pix_counter = 0;
             win_roi = binary_image(slide_wins_[i]);
 
@@ -152,16 +154,18 @@ std::vector<cv::Point2i> RobocupVision::GetSideLineBySldWin(cv::Mat binary_image
             }
             if (pix_counter*1.0/slide_wins_[i].area() > slide_win_thre_rate_) {
                 win_valid = false;
+                break;
             }
+
             if (slide_wins_[i].y+2*slide_stride_ < src_image_.rows) {
                 slide_wins_[i].y += slide_stride_;
             }
             else {
                 win_valid = false;
             }
-        }
+        } while (win_valid);
 
-        slide_wins_points.push_back(cv::Point2i(slide_wins_[i].x + slide_window_cols_/2, slide_wins_[i].y + slide_window_rows_/2));
+        slide_wins_points.push_back(cv::Point2i(slide_wins_[i].x + slide_window_cols_/2, slide_wins_[i].y + slide_window_rows_*slide_win_thre_rate_));
     }
     return slide_wins_points;
 }
